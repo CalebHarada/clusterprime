@@ -17,7 +17,7 @@ from astropy.io import fits
 from astropy.table import Column, Table, join, vstack
 from astropy.stats import sigma_clipped_stats
 
-from clusterprime.helper import overwritecheck
+from clusterprime.helper.helper import overwritecheck
 
 def jointables(alltab, newtab, Nobs):
     """Merges new table into the alltab by a vstack. A special exception

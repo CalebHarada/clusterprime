@@ -12,7 +12,8 @@ import astropy.io.fits as fits
 import numpy as np
 import photutils.background as bkg
 
-from clusterprime.helper import trimchip, overwritecheck, Logger
+from clusterprime.helper.helper import trimchip, overwritecheck
+from clusterprime.helper.logger import Logger
 
 def makedirectories(config, fitsfiles, obsnum):
     """Makes the directory structure for a set of reduced fits files,

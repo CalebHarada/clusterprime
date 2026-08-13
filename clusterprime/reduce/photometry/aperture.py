@@ -17,7 +17,7 @@ from astropy.table import Column, Table
 from astropy.wcs import WCS
 from scipy.spatial import cKDTree
 
-from clusterprime.helper import overwritecheck, trimchip
+from clusterprime.helper.helper import overwritecheck, trimchip
 
 # SNLS mags taken from the CFHT Megacam page, used for filling in the
 # appropriate values in the header's photometry block

@@ -1,1 +1,1 @@
-from .sky import *
+from clusterprime.reduce.sky.sky import *

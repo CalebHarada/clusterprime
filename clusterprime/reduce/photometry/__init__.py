@@ -1,1 +1,1 @@
-from .aperture import *
+from clusterprime.reduce.photometry.aperture import *

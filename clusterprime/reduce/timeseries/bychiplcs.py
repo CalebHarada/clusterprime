@@ -16,7 +16,7 @@ from astropy.stats import sigma_clip, sigma_clipped_stats
 from astropy.table import Column, Table
 from scipy.spatial import cKDTree
 
-from clusterprime.helper import overwritecheck
+from clusterprime.helper.helper import overwritecheck
 
 def getmedianmetavals(catalogs):
     """Computes the median value for the metadata to associate with each

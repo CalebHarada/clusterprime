@@ -1,4 +1,3 @@
-from .photometry import *
-from .sky import *
-from .timeseries import *
-from .reduce import *
+from clusterprime.reduce.photometry import *
+from clusterprime.reduce.sky import *
+from clusterprime.reduce.timeseries import *
