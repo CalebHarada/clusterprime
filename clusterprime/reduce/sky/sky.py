@@ -133,7 +133,7 @@ def skysubtractchip(config, fitsfile, fitsdir, ccdi, logger,
         if overwritecheck(outf): return
     print(f"Sky subtracting chip {ccdi}")
     # Bad pixel mask
-    badpixelmask = fits.getdata('badpixel_mask.fits', ext=ccdi)
+    badpixelmask = fits.getdata('badpixel_mask.fits.fz', ext=ccdi)
     badpixelmask = trimchip(badpixelmask)
     badpixelmask = badpixelmask < 1
     # Extension specific header

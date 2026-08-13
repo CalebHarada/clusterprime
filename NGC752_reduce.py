@@ -20,8 +20,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Column, Table
 
-from clusterprime.helper import Config, Logger
-from clusterprime.reduce.sky import skysubtract
+import clusterprime as clp
 ##############################################
 
 
@@ -35,8 +34,7 @@ can run this code. See the example linked on the GitHub above. The main points
 are summarized here:
     - Put the member catalog in its own subdirectory and make sure it has
     the right column names
-    - Download the bad pixel mask for MegaPrime (not sure if this is actually
-    necessary, and also idk where to find this)
+    - Download the bad pixel mask for MegaPrime ()
     - Set up all the directories the code expects
     - Download the data from the CFHT archive and organize it in subdirectories
     in the way the code expects (I wrote a python script to do this)
@@ -57,7 +55,7 @@ apsize = 2.00
 # Suppress warning about the cluster name
 cwd = os.getcwd()
 with warnings.catch_warnings(record=True) as w:
-    config = Config(cwd, 'NGC752', 'added_overlap_flag', apsize)
+    config = clp.Config(cwd, 'NGC752', 'added_overlap_flag', apsize)
 
 
 # We had XXX visits to NGC752 in total, meaning there were observations 000
@@ -101,10 +99,10 @@ for obs in newobsdirs:
     skysub[obs.stem] = pointings
 
 # Add whats been done to the logger for quick read through later
-logger = Logger()
+logger = clp.Logger()
 
 # Run the skysubtraction
 for fitsgroup in skysub:
     print("Running skysubtract for group: ", fitsgroup)
-    skysubtract(config, skysub[fitsgroup], fitsgroup, logger, 
+    clp.reduce.skysubtract(config, skysub[fitsgroup], fitsgroup, logger, 
                            overwrite=overwrite)
