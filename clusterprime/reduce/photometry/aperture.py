@@ -47,7 +47,7 @@ def readreducedfits(chipf, exts, mask=False, hdr=False):
         # Extract the ccd index from the filename
         ccdi = int(chipf.name[3:5])
         # Read in the mask and convert to bool
-        mask = fits.getdata("badpixel_mask.fits", ext=ccdi)
+        mask = fits.getdata("badpixel_mask.fits.fz", ext=ccdi)
         mask = trimchip(mask)
         mask = mask < 1
         out.append(mask)
