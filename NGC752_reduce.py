@@ -41,6 +41,9 @@ are summarized here:
 # *** SETUP ***
 # *************
 
+# Setting the total number of observations (epochs)
+total_obs = 1
+
 # Setting overwrite to False to prevent overwriting any data that might
 # already exist
 overwrite = False
@@ -267,3 +270,105 @@ for obsdir, outdir in epochmeans:
 #  - DATE-OBS: the date of the observation in UTC
 #  - UTC-OBS: the exposure start time in UTC
 #  - Seeing: the seeing FWHM in pixels of that observation
+
+
+
+# ****************************
+# *** BY CHIP LIGHT CURVES ***
+# ****************************
+# Now we run through step of collecting all the indiviual epochs of photometry
+# into one table that covers the full time series. This step creates two tables
+# per chip in the detector, one that contains the time series photometry itself
+# and one that contains the time series of the "meta" values, e.g., the median
+# seeing for each epoch, the zero-point correction used for that epoch, etc.
+# This step also applies the zero-point correction to put all the epochs in the
+# same system before any furhter analysis.
+bychiplcs = sorted(config.analysis.glob('obs'+3*'[0-9]'))
+outdir = config.analysis
+print("Making per chip time series tables")
+for ccdi in ccdis:
+  print(f"CCD: {ccdi:02}")
+  clp.reduce.buildtimeseries(config, bychiplcs, outdir, ccdi, 
+                             overwrite=overwrite)
+# First output table is ccdMM_apsize_ts.ecsv, it has the following columns:
+# - gaia_id - the source's gaia EDR3 id
+# - obsNNN_avg - the mean magnitude for obsNNN one column per obs that exists
+# - obsNNN_sdv - the standard deviation for obsNNN one column per obs that exists
+# - obsNNN_unc - the estimated uncertainty for obsNNN one column per obs that exists
+# - obsNNN_Ninavg - the N used in the avg for obsNNN one column per obs that exists
+# - nndist - nearest neighbor in arcseconds for that source
+# Second output is table ccdMM_metatable.ecsv, it has the following columns:
+# - Obs - the obs number (for M67 this was the integer 0-125)
+# - MJD-OBS - MJD of the observation, taken as the median of the values for the
+#             pointings that went into the epoch
+# - DATE-OBS - UT Date of the epoch
+# - UTC-OBS - UT time of the epoch, taken as the median of the exposure start
+#             times for each pointing in the epoch
+# - Seeing - The median seeing of the pointings in that epoch
+# - ZP_Corr - the zero-point correction applied to this epoch
+# - aperrs - the radius of the apertures used for this epoch
+
+
+
+# ***************
+# *** ALL TAB ***
+# ***************
+# This step simply stacks all the by chip tables into one table that contains
+# all the time series photometry for all the sources, as such it has the same
+# columns
+# - gaia_id - the source's gaia EDR3 id
+# - obsNNN_avg - the mean magnitude for obsNNN one column per obs that exists
+# - obsNNN_sdv - the standard deviation for obsNNN one column per obs that exists
+# - obsNNN_unc - the estimated uncertainty for obsNNN one column per obs that exists
+# - obsNNN_Ninavg - the N used in the avg for obsNNN one column per obs that exists
+# - nndist - nearest neighbor in arcseconds for that source
+alltab = sorted(config.analysis.glob('ccd*_ts.ecsv'))
+print("Generating all table")
+# ***NOTE*** this call needs to be modified if there are not 126 observations in total
+clp.reduce.generatealltab(config, alltab, config.analysis, total_obs,
+                        overwrite=overwrite)
+
+
+
+# ****************
+# *** LC FILES ***
+# ****************
+# The final step of the reduction pipeline: generating an lc file for each source
+# lc files are fits files, the 0th extension contains the light curve and
+# current analysis steps add the periodogram as the 1st extension. The data on
+# the 0th extension are shaped (N, 10) where N is the number of observations
+# so each slice are as follows:
+# given hdul = astropy.io.fits.open("examplelc.fits")
+# hdul[0].data[:,0] = time of obs in MJD
+# hdul[0].data[:,1] = flux [ppm]
+# hdul[0].data[:,2] = estimated uncertainty [ppm]
+# hdul[0].data[:,3] = obs number (integer value)
+# hdul[0].data[:,4] = magnitude [instrumental]
+# hdul[0].data[:,5] = estimated uncertainty [mag]
+# hdul[0].data[:,6] = standard deviation [mag]
+# hdul[0].data[:,7] = seeing [pixels]
+# hdul[0].data[:,8] = zero-point correction [mag]
+# hdul[0].data[:,9] = aperture radius [pixels]
+# All of the above is included in the header, as well as the following additional
+# information, as long as it was all available in the catalogs used during the
+# data reduction
+# GAIA_ID, PS1_ID, RA, RA_ERR, DEC, DEC_ERROR - self explanatory
+# PARA, PARA_ERR - the parallax of the target and the parallax error
+# PMRA, PMRA_ERR, PMDE, PMDE_ERR - proper motions
+# GAIA_G, GAIA_BP, GAIA_RP, G_G_ERR, G_BP_ERR, G_RP_ERR - gaia phot + errors
+# PS1_G, PS1_R, PS1_I, PS1_Z, P_G_ERR, P_R_ERR, P_I_ERR, P_Z_ERR - ps1 phot + errors
+# KINEPROB - kinematic cluster membership probability
+# MAINSEQ - tagged as a main sequence member
+# MULTI - tagged as a potential binary
+# BRIGHT - too bright for PS1 photometry
+# COMPLETE - fraction of the light curve that is filled in
+# NNDIST - distance to nearest neighbor in arcsec
+
+datatabfs = sorted(config.analysis.glob('ccd*_ts.ecsv'))
+metatabfs = sorted(config.analysis.glob('ccd*_metatable.ecsv'))
+indivlcs = list(zip(datatabfs, metatabfs))
+print("Generating Light Curve files")
+clp.reduce.generatelcfs(config, indivlcs, config.analysis / 'lightcurves')
+# output files are located in the lightcurves subdir,
+# e.g., /home/rdungee/cluster/M67reduce/analysisname/lightcurves
+# file names are the Gaia ID, e.g., 604896498115959296.fits

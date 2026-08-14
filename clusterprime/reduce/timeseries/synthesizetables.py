@@ -204,7 +204,7 @@ def generatelcfs(config, tabfs, outdir):
             hdul[0].data = dataarr
             hdul[0].header['COMPLETE'] = dataarr.shape[0] / obsmax
             dist = row['nndist']
-            if np.isnan(dist):
+            if np.isnan(dist) | np.isposinf(dist):
                 print("***WARNING***")
                 print(f"{row['gaia_id']} has a nearest neighbor distance of {dist}")
                 print(f"Completeness: {dataarr.shape[0] / obsmax}")
