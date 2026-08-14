@@ -185,3 +185,85 @@ for catdir, outdir in trimsource:
 #  - Gain: the detector gain
 #  - Maxlin: the maxlinearity of the detector, for saturation cutoff
 #  - Seeing: the seeing FWHM in pixels of that observation
+
+
+
+# ******************
+# *** PHOTOMETRY ***
+# ******************
+# Now compute the aperture photometry, using photutils this is pretty
+# straight forward to do, most of the work now is keeping track of everything
+
+# Start with directory lists again, looking for the trimmed catalogs and their
+# matching reduced images for computing photometry
+catdirs = []
+for i in obsis:
+   catdirs.extend(sorted((config.analysis / f'obs{i:03}').glob('*p')))
+phot = zip(catdirs, catdirs)
+# Run the photometry
+for catdir, outdir in phot:
+   print(f"Photometrizing {catdir.parent.stem}, {catdir.stem}")
+   for ccdi in ccdis:
+       print(f"CCD: {ccdi:02}")
+       clp.reduce.photometrize(config, catdir, outdir, ccdi, 
+                       overwrite=overwrite)
+# This step creates photometry catalogs in the same directory as the catalogs
+# Columns include:
+#  - xcentroid: x pixel centroid of source
+#  - ycentroid: y pixel centroid of source
+#  - gaia_id: the gaia identifier for the source, taken from crossmatching step
+#  - nndist: the distance in arcsec to the nearest neighboring source
+#  - flux: the flux in the aperture
+#  - flux_unc: the uncertainty of the flux from error propagation (Poisson, read noise, sky)
+#  - MaskedPix?: if true, bad pixels were in the aperture
+#  - SatPix?: if true, saturated pixels were in aperture
+#  - mag_inst: instrumental magnitude of flux
+#  - mag_unc: uncertainty on mag
+# The file is a astropy.table .ecsv format so it also has commented header lines,
+# which contain metadata:
+#  - Skymax: the peak sky value for the chip
+#  - Gain: the detector gain
+#  - Maxlin: the maxlinearity of the detector, for saturation cutoff
+#  - Seeing: the seeing FWHM in pixels of that observation
+#  - AIRMASS: the airmass of the observation
+#  - EXPTIME: the exposure time of the obs
+#  - MJD-OBS: exposure start time in MJD format
+#  - DATE-OBS: the date of the observation in UTC
+#  - UTC-OBS: the exposure start time in UTC
+
+
+
+# *******************
+# *** EPOCH MEANS ***
+# *******************
+# Now we compute the mean magnitude for each source in a given epoch (i.e., the
+# mean of up to 5 magnitudes, creating a point in the light curve)
+
+# Directory set up as usual
+obsnums = [config.analysis / f'obs{i:03}' for i in obsis]
+epochmeans = zip(obsnums, obsnums)
+# Run the epoch mean generating
+for obsdir, outdir in epochmeans:
+   print(f"Computing Epoch Means for {obsdir.stem}")
+   for ccdi in ccdis:
+       print(f"CCD: {ccdi:02}")
+       clp.reduce.meanofpointings(config, obsdir, outdir, ccdi,
+                                  overwrite=overwrite)
+# This step generates a table per ccd that sit in the epoch reduced data
+# directory (e.g. /home/rdungee/cluster/data/M67reduce/analysisname/obs000) for legacy
+# reasons it includes the aperture size (2.00 in this example script) in
+# the filename
+# Columns include:
+#  - gaia_id: the gaia identifier for the source, taken from crossmatching step
+#  - magavg: mean mag_inst value
+#  - magsdv: the standard deviation of the N measurements
+#  - magunc: the estimated uncertainty using error propagation
+#  - nndist: the distance in arcsec to the nearest neighboring source
+#  - Ninmean: the number of mag_inst values used in computing the above (i.e.,
+#             how many didn't have bad pixels/weren't partially on chip/no saturation)
+# The file is a astropy.table .ecsv format so it also has commented header lines,
+# which contain metadata:
+#  - MJD-OBS: exposure start time in MJD format
+#  - DATE-OBS: the date of the observation in UTC
+#  - UTC-OBS: the exposure start time in UTC
+#  - Seeing: the seeing FWHM in pixels of that observation
