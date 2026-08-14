@@ -58,7 +58,7 @@ apsize = 2.00
 # Create the config file, we use the default for the various directories
 # Suppress warning about the cluster name
 cwd = os.getcwd()
-with warnings.catch_warnings():
+with warnings.catch_warnings(record=True) as _:
     config = clp.Config(cwd, 'NGC752', 'added_overlap_flag', apsize)
 
 # We had XXX visits to NGC752 in total, meaning there were observations 000
@@ -128,7 +128,7 @@ for i in obsis:
 # Run source finding for each ccd in ccdis, for each directory from the step
 # above
 # Suppress warnings about deprecated FITS header key
-with warnings.catch_warnings():
+with warnings.catch_warnings(record=True) as _:
     for chipdir, outdir in zip(chipdirs, chipdirs):
         print(f"Find sources for {chipdir.parent.stem}, {chipdir.stem}")
         for ccdi in ccdis:
