@@ -10,6 +10,7 @@ __all__ = ["getmedianmetavals", "collectepochvalues", "zeropointcorrect",
 import numpy as np
 import numpy.ma as ma
 import photutils
+import warnings
 
 from astropy.io import fits
 from astropy.stats import sigma_clip, sigma_clipped_stats
@@ -110,8 +111,9 @@ def zeropointcorrect(mags, completeness, nndist, cutoff=2.):
     scattermask = (ma.std(mags, axis=1).filled(np.NaN) < medscatter) & Nmask & distmask
     zps = np.zeros(mags.shape[1])
     for i in range(1, mags.shape[1]):
-        zps[i] = ma.median(mags[scattermask,0] - mags[scattermask,i])
+        zps[i] = ma.median((mags[scattermask,0] - mags[scattermask,i]).filled(np.nan))
         mags[:,i] += zps[i]
+    mags = ma.masked_invalid(mags)
     return zps, mags
 
 def meanofpointings(config, obsdir, outdir, ccdi, overwrite=False):
@@ -155,7 +157,10 @@ def meanofpointings(config, obsdir, outdir, ccdi, overwrite=False):
     # Collect the values for each source into arrays, each row (0th
     # index) is a source, and there are 5 columns
     mags, uncs, Ninmean, nndist = collectepochvalues(uniqueids, catalogs)
-    nndist = np.nanmin(nndist, axis=1)
+    # Disable warning when all-nan array is encountered
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        nndist = np.nanmin(nndist, axis=1)
     zps, mags = zeropointcorrect(mags, 4, nndist)
     magavgs = ma.mean(mags, axis=1)
     magsdvs = ma.std(mags, axis=1, ddof=1)

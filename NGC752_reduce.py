@@ -42,11 +42,12 @@ are summarized here:
 # *************
 
 # Setting the total number of observations (epochs)
-total_obs = 1
+total_obs = 112
 
 # Setting overwrite to False to prevent overwriting any data that might
 # already exist
-overwrite = False
+# overwrite = False
+overwrite = True
 
 # Setting debug to False since this was only used during the development
 debug = False
@@ -61,8 +62,8 @@ cwd = os.getcwd()
 with warnings.catch_warnings(record=True) as _:
     config = clp.Config(cwd, 'NGC752', 'added_overlap_flag', apsize)
 
-# We had XXX visits to NGC752 in total, meaning there were observations 000
-# through XXX (obs000 to obsXXX), to "parallelize" reducing the data we
+# We had 112 visits to NGC752 in total, meaning there were observations 000
+# through 112 (obs000 to obs112), to "parallelize" reducing the data we
 # can focus it on a subset of the observations set by this range. This
 # line is doing that by user input (e.g. calling
 #  'python NGC752reduce.py 0 20' will run it for obs000 to obs019)
@@ -76,7 +77,7 @@ obsis = range(int(sys.argv[1]), int(sys.argv[2]))
 ccdis = range(1, 41)
 
 
-
+"""
 # ***********************
 # *** SKY SUBTRACTION ***
 # ***********************
@@ -109,9 +110,9 @@ for fitsgroup in skysub:
     print("Running skysubtract for group: ", fitsgroup)
     clp.reduce.skysubtract(config, skysub[fitsgroup], fitsgroup, logger, 
                            overwrite=overwrite)
+"""
 
-
-
+"""
 # **********************
 # *** SOURCE FINDING ***
 # **********************
@@ -141,9 +142,9 @@ with warnings.catch_warnings(record=True) as _:
 # that has been reduced so far)
 # The output is simply the table that DAOStarFinder returns, see the photutils
 # docs on this for details on what it contains
+"""
 
-
-
+"""
 # ************************
 # *** CATALOG TRIMMING ***
 # ************************
@@ -188,9 +189,9 @@ for catdir, outdir in trimsource:
 #  - Gain: the detector gain
 #  - Maxlin: the maxlinearity of the detector, for saturation cutoff
 #  - Seeing: the seeing FWHM in pixels of that observation
+"""
 
-
-
+"""
 # ******************
 # *** PHOTOMETRY ***
 # ******************
@@ -233,9 +234,9 @@ for catdir, outdir in phot:
 #  - MJD-OBS: exposure start time in MJD format
 #  - DATE-OBS: the date of the observation in UTC
 #  - UTC-OBS: the exposure start time in UTC
+"""
 
-
-
+"""
 # *******************
 # *** EPOCH MEANS ***
 # *******************
@@ -270,7 +271,7 @@ for obsdir, outdir in epochmeans:
 #  - DATE-OBS: the date of the observation in UTC
 #  - UTC-OBS: the exposure start time in UTC
 #  - Seeing: the seeing FWHM in pixels of that observation
-
+"""
 
 
 # ****************************
